@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 function usage {
     echo "Run bash rbd benchmark"
@@ -38,7 +39,7 @@ mapandmount() {
     echo "$1, $diff" >> output-mount-"$NUM".csv
 }
 
-NUM=100
+NUM=10
 for (( c=1; c<=$NUM; c++ ))
 do
     mapandmount $c &

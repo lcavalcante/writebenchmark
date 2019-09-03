@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 function usage {
     echo "Run bash rbd benchmark - unmap and umount"
@@ -38,7 +39,7 @@ unmapandumount() {
     echo "$1, $diff" >> output-umount-"$NUM".csv
 }
 
-NUM=100
+NUM=10
 for (( c=1; c<=$NUM; c++ ))
 do
     unmapandumount $c &
