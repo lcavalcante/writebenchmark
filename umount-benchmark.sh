@@ -35,7 +35,7 @@ unmapandumount() {
     rbd unmap test-"$1"k --pool scalable_sgx --name client.scalable
     endtime=$(date +%s%3N)
     diff=$(( $endtime - $starttime ))
-    echo "$1, $diff" >> output-umount-"$NUM".csv
+    echo "$1, $diff" >> umount-"$NUM".csv
 }
 
 NUM=100
