@@ -2,8 +2,8 @@
 
 unmapandumount() {
     starttime=$(date +%s%3N)
-    rbd  unmap test-"$1"k --pool scalable_sgx --name client.scalable
     umount /dev/rbd/scalable_sgx/test-"$1"k
+    rbd  unmap test-"$1"k --pool scalable_sgx --name client.scalable
     endtime=$(date +%s%3N)
     diff=$(( $endtime - $starttime ))
     echo "$1, $diff" >> umount-"$max".csv
