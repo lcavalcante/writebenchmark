@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 function usage {
     echo "Run bash rbd benchmark - unmap and umount"
@@ -35,10 +36,10 @@ unmapandumount() {
     rbd unmap test-"$1"k --pool scalable_sgx --name client.scalable
     endtime=$(date +%s%3N)
     diff=$(( $endtime - $starttime ))
-    echo "$1, $diff" >> umount-"$NUM".csv
+    echo "$1, $diff" >> output-umount-"$NUM".csv
 }
 
-NUM=100
+NUM=10
 for (( c=1; c<=$NUM; c++ ))
 do
     unmapandumount $c &
