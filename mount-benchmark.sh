@@ -3,7 +3,7 @@ set -e
 
 NUM=10
 
-afunction usage {
+function usage {
     echo "Run bash rbd benchmark"
     echo ""
     echo "Usage: `basename ${BASH_SOURCE[0]}` [OPTIONS]"
@@ -32,13 +32,15 @@ while [ "$#" -gt 0 ]; do
     shift
 done
 
+echo "mounted, id, time" >> output-mount-"$NUM".csv
+
 mapandmount() {
     local starttime=$(date +%s%3N)
     rbd map test-"$1"k --pool scalable_sgx --name client.scalable
     mount /dev/rbd/scalable_sgx/test-"$1"k /mnt/test-"$1"k
     local endtime=$(date +%s%3N)
     local diff=$(( $endtime - $starttime ))
-    echo "$1, $diff" >> output-mount-"$NUM".csv
+    echo "$NUM, $1, $diff" >> output-mount-"$NUM".csv
 }
 
 for (( c=1; c<=$NUM; c++ ))

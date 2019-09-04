@@ -32,13 +32,15 @@ while [ "$#" -gt 0 ]; do
     shift
 done
 
+echo "mounted, id, time" >> output-umount-"$NUM".csv
+
 unmapandumount() {
     starttime=$(date +%s%3N)
     umount /mnt/test-"$1"k
     rbd unmap test-"$1"k --pool scalable_sgx --name client.scalable
     endtime=$(date +%s%3N)
     diff=$(( $endtime - $starttime ))
-    echo "$1, $diff" >> output-umount-"$NUM".csv
+    echo "$NUM, $1, $diff" >> output-umount-"$NUM".csv
 }
 
 for (( c=1; c<=$NUM; c++ ))
