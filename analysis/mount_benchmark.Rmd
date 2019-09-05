@@ -1,0 +1,76 @@
+---
+title: "RBD Benchmark - Map and mount"
+subtitle: Exploratory data analysis on benchmark of Ingress Controllers on K8S
+output:
+  md_document:
+    variant: markdown_github
+    df_print: paged
+    toc: yes
+  html_notebook:
+    df_print: paged
+    toc: yes
+    toc_float: yes
+  html_document:
+    df_print: paged
+    toc: yes
+    toc_float: yes
+  pdf_document:
+    toc: yes
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(knitr)
+library(reshape2)
+library(ggplot2)
+library(grid)
+library(here)
+library(gridExtra)
+library(lubridate)
+
+theme_set(theme_bw())
+```
+
+```{r}
+data <- read_csv(here::here('analysis', 'data', 'mount.csv'), na = c("", "NA", "NaN"))
+data <- transform(data, mounted = as.factor(mounted))
+```
+
+```{r boxplot, echo=FALSE}
+data %>%
+  transform(mounted = as.factor(mounted)) %>%
+  ggplot(aes(x=mounted, y=time)) +
+  geom_boxplot() +
+  labs(x = '#mounted', y= 'Duration (ms)', subtitle='Boxplot - mounted')
+```
+
+```{r boxplotnoout, echo=FALSE}
+data %>%
+  filter(time < 100000) %>%
+  transform(mounted = as.factor(mounted)) %>%
+  ggplot(aes(x=mounted, y=time)) +
+  geom_boxplot() +
+  labs(x = '#mounted', y= 'Duration (ms)', subtitle='Boxplot - mounted')
+```
+
+```{r n-th_latency, echo=FALSE, }
+p <- seq(0.01, 1, 0.01)
+p_names <- map_chr(p, ~paste0(.x*100, ""))
+p_funs <- map(p, ~partial(quantile, probs = .x, na.rm = TRUE)) %>% set_names(nm = p_names)
+quart <- data %>%
+  group_by(mounted) %>%
+  summarise_at(vars(time), funs(!!!p_funs)) %>%
+  ungroup()
+
+quart <- melt(data = as.data.frame(quart), id.vars = c("mounted"), measure.vars = p_names)
+
+quart %>%
+  mutate(variable = as.numeric(variable)) %>%
+  filter(value < 100000) %>%
+  ggplot(aes(x = variable, y = value, col = mounted)) +
+  geom_point() +
+  labs(x = 'Percentile', y= 'Duration (ms)', col="Mounted", subtitle='Percentiles - Task Duration')
+```
