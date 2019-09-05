@@ -34,16 +34,16 @@ func main() {
 
     respond := make(chan time.Duration, n)
 
-    for i := 878; i <= n; i++ {
+    for i := 1; i <= n; i++ {
         //value := strconv.Itoa(i)
         var str strings.Builder
-        str.WriteString("/dev/rbd/scalable_sgx/")
+        str.WriteString("/aoba/")
         rbd := fmt.Sprintf("test-%dk", i)
         str.WriteString(rbd)
         go writeTest(respond, str.String(), rbd)
     }
 
-    for i := 878; i <= n; i++ {
+    for i := 1; i <= n; i++ {
         diff := <-respond
         b_wrote, err := f.WriteString(fmt.Sprintf("%d, %d, %v\n", n, i, diff))
         check(err)
@@ -62,21 +62,20 @@ func printTest(a string) error {
 }
 
 func writeTest(respond chan<- time.Duration, mp string, rbd string) {
-    starttime := time.Now()
     client, err := containerd.New("/run/containerd/containerd.sock")
     if err != nil {
         log.Fatal(err)
     }
     defer client.Close()
 
-    ctx := namespaces.WithNamespace(context.Background(), "example4")
+    ctx := namespaces.WithNamespace(context.Background(), "example7")
     image, err := client.Pull(ctx, "docker.io/lucasmc/writetest:latest", containerd.WithPullUnpack)
     if err != nil {
         log.Fatal(err)
     }
     log.Printf("Successfully pulled %s image\n", image.Name())
 
-    mnt := []specs.Mount{{Destination: "/data", Type: "bind", Source: "/aoba", Options:[]string{"rw","rbind"}}}
+    mnt := []specs.Mount{{Destination: "/data", Type: "bind", Source: mp, Options:[]string{"rw","rbind"}}}
     container, err := client.NewContainer(
             ctx,
             rbd,
@@ -89,6 +88,7 @@ func writeTest(respond chan<- time.Duration, mp string, rbd string) {
     defer container.Delete(ctx, containerd.WithSnapshotCleanup)
     log.Printf("Successfully created container with ID %s and snapshot with ID write-test-snapshot", container.ID())
 
+    starttime := time.Now()
     task, err := container.NewTask(ctx, cio.NewCreator(cio.WithStdio))
     if err != nil {
         log.Fatal(err)
